@@ -9,13 +9,14 @@ import cfscrape
 import pickle
 import re
 import os
+import configparser
 
 # user provided info
-pushbulletAPI = "o.AHKh671q9bc91LVmvRx4olNE7eV3LIgF"
 carousellWebsiteLink = "https://carousell.com/search/products/?query="
 searchTerms = [] # note: search term should not have spaces, replace with +
 
 # global vars - do not change!
+pushbulletAPI = ""
 newListings = []
 
 # carousell object
@@ -54,6 +55,13 @@ def processURL(link):
 		listing.title = unicode(matchObj[1])
 		listing.desc = unicode(matchObj[2])
 		newListings.append(listing)
+
+
+# read config file and load parameters
+config = configparser.ConfigParser()
+config.read('config.cfg')
+pushbulletAPI = config['Pushbullet']['api']
+print pushbulletAPI
 
 # read search terms from file
 try: 
