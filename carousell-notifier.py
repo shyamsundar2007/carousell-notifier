@@ -8,6 +8,7 @@ import urllib
 import cfscrape
 import pickle
 import re
+import os
 
 # user provided info
 pushbulletAPI = "o.AHKh671q9bc91LVmvRx4olNE7eV3LIgF"
@@ -56,7 +57,8 @@ def processURL(link):
 
 # read search terms from file
 try: 
-	file = open("searchTerms.txt", 'r')
+	searchTermsFile = os.getenv("HOME") + "/Scripts/carousell-notifier/searchTerms.txt"
+	file = open(searchTermsFile, 'r')
 	for line in file:
 		searchTerms.append(line)
 	file.close()
