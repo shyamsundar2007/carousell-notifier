@@ -2,11 +2,11 @@
 
 # imports
 from bs4 import BeautifulSoup
-from pushbullet import Pushbullet
-
+from pushbullet import Pushbullet, InvalidKeyError
 import urllib
 import cfscrape
 import pickle
+import sys
 import re
 import os
 import configparser
@@ -56,16 +56,25 @@ def processURL(link):
 		listing.desc = unicode(matchObj[2])
 		newListings.append(listing)
 
+# set working directory to current path
+abspath = os.path.abspath(__file__)
+dname = os.path.dirname(abspath)
+os.chdir(dname)
 
 # read config file and load parameters
 config = configparser.ConfigParser()
 config.read('config.cfg')
 pushbulletAPI = config['Pushbullet']['api']
 
+try: 
+	pb = Pushbullet(pushbulletAPI)
+except InvalidKeyError:
+	print "Pushbullet API key was invalid! No notification will be sent. Quitting program"
+	sys.exit()
+
 # read search terms from file
 try: 
-	searchTermsFile = os.getenv("HOME") + "/Scripts/carousell-notifier/searchTerms.txt"
-	file = open(searchTermsFile, 'r')
+	file = open('searchTerms.txt', 'r')
 	for line in file:
 		searchTerms.append(line)
 	file.close()
@@ -83,7 +92,7 @@ for searchTerm in searchTerms:
 
 	# compare new listings with old
 	oldListings = []
-	pb = Pushbullet(pushbulletAPI)
+
 	oldFileName = "oldListings" + searchTerm.rstrip() + ".pkl"
 
 	try:
