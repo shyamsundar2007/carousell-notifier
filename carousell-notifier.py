@@ -61,7 +61,6 @@ def processURL(link):
 config = configparser.ConfigParser()
 config.read('config.cfg')
 pushbulletAPI = config['Pushbullet']['api']
-print pushbulletAPI
 
 # read search terms from file
 try: 
