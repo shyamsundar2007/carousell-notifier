@@ -40,12 +40,12 @@ def processURL(link):
 	url = scraper.get(carousellWebsiteLink + searchTerm).content
 	soup = BeautifulSoup(url, "lxml")
 
-	# print(soup.prettify().encode('utf-8'))
-	# for link in soup.find_all('script'):
-	# 	print(len(list(link.children)))
+	#print(soup.prettify().encode('utf-8'))
+	#for link in soup.find_all('script'):
+		#print(link.contents)
 	link = soup.find_all('script')
-	content = link[1].contents[0]
-	#print(content)
+	content = link[4].contents[0]
+	print(link[2].contents)
 	unicodeContent = unicode(content)
 	pattern = re.compile("\"id\"\:(\d*)\,\"title\"\:\"(.*?)\"\,\"description\"\:\"(.*?)\"")
 	matches = re.findall(pattern, unicodeContent)
