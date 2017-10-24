@@ -124,7 +124,7 @@ for searchTerm in searchTerms:
 	#print "New listings to be added to storage: "
 	for listing in newListingsAdded: 
 		#print listing.title
-		 push = pb.push_note("A new listing has been found for " + searchTerm.rstrip(), listing.title + listing.desc)
+		 push = pb.push_note("A new listing has been found for " + searchTerm.rstrip(), listing.title)
 	#print " "
 
 	print ("There were " + str(len(newListings)) + " listings found on the website with " + str(len(newListingsAdded)) + " listings newly added")
