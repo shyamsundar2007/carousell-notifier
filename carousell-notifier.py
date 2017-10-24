@@ -42,11 +42,12 @@ class Carousell(object):
 def getProductId(href):
 	# href looks something like this:
 	# /p/a-little-life-by-hanya-yanagihara-91606615/?ref=search&amp;ref_query=overcoming%20gravity&amp;ref_referrer=%2Fsearch%2Fproducts%2F%3Fquery%3Dovercoming%2Bgravity&amp;ref_reqId=NQAu0aCv9lO1soG0gpxzWtjk1kgVYUx3
-	pattern = re.compile("^\/p\/[a-zA-Z-]+(\d+)\/")
+	pattern = re.compile("^\/p\/.*?-(\d+)\/")
 	matches = re.findall(pattern, href)
 	if len(matches) > 0:
 		return matches[0]
 	else:
+		print "unable to read id from href: " + href
 		return -1
 
 # process carousell URL
@@ -106,6 +107,7 @@ for searchTerm in searchTerms:
 
 	# compare new listings with old
 	oldListings = []
+	oldFileExists = True
 
 	oldFileName = "oldListings" + searchTerm.rstrip() + ".pkl"
 
@@ -120,24 +122,25 @@ for searchTerm in searchTerms:
 					break
 	except IOError:
 		print "File not found. Continuing anyways...\n"
+		oldFileExists = False
 
 	newListingsAdded = list(set(newListings) - set(oldListings))
 
 	print "New listings in website: "
 	for listing in newListings:
-		print listing.title
+		print str(listing.id) + ": " + listing.title
 	print " "
 
 	print "Old listings stored internally: "
 	for listing in oldListings:
-		print listing.title
+		print str(listing.id) + ": " + listing.title
 	print " "
 
-	#print "New listings to be added to storage: "
-	for listing in newListingsAdded: 
-		#print listing.title
-		 push = pb.push_note("A new listing has been found for " + searchTerm.rstrip(), listing.title + "\n" + listing.price + "\n" + listing.link)
-	#print " "
+	if oldFileExists:
+		for listing in newListingsAdded: 
+			 push = pb.push_note("A new listing has been found for " + searchTerm.rstrip(), listing.title + "\n" + listing.price + "\n" + listing.link)
+	else:
+		print "Since old file does not exist, not spamming pushbullet with multiple listings. New listings will be pushed to your device!"
 
 	print ("There were " + str(len(newListings)) + " listings found on the website with " + str(len(newListingsAdded)) + " listings newly added")
 	print " "
