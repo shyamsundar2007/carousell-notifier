@@ -13,6 +13,7 @@ import configparser
 
 # user provided info
 carousellWebsiteLink = "https://carousell.com/search/products/?query="
+carousellBaseLink = "https://carousell.com"
 searchTerms = [] # note: search term should not have spaces, replace with +
 
 # global vars - do not change!
@@ -24,15 +25,29 @@ class Carousell(object):
 	def __init__(self):
 		self.id = 0		# (integer) id for carousell object
 		self.title = ""		# (string) title for listing
-		self.desc = ""		# (string) description for listing
+		self.link = ""
+		self.price = ""
 	def __hash__(self):
 		return hash(self.id)
 	def __eq__(self, other):
 		return (isinstance(other, self.__class__) and getattr(other, 'id') == self.id)
-	def addListing(self, listingId, listingTitle, listingDesc):
+	def addListing(self, listingId, listingTitle, listingLink, listingPrice):
 		self.id = listingId;
 		self.title = listingTitle;
 		self.desc = listingDesc;	
+		self.link = listingLink
+		self.price = listingPrice
+
+# get product ID from href
+def getProductId(href):
+	# href looks something like this:
+	# /p/a-little-life-by-hanya-yanagihara-91606615/?ref=search&amp;ref_query=overcoming%20gravity&amp;ref_referrer=%2Fsearch%2Fproducts%2F%3Fquery%3Dovercoming%2Bgravity&amp;ref_reqId=NQAu0aCv9lO1soG0gpxzWtjk1kgVYUx3
+	pattern = re.compile("^\/p\/[a-zA-Z-]+(\d+)\/")
+	matches = re.findall(pattern, href)
+	if len(matches) > 0:
+		return matches[0]
+	else:
+		return -1
 
 # process carousell URL
 def processURL(link):
@@ -43,17 +58,16 @@ def processURL(link):
 	#print(soup.prettify().encode('utf-8'))
 	#for link in soup.find_all('script'):
 		#print(link.contents)
-	link = soup.find_all('script')
-	content = link[4].contents[0]
-	print(link[2].contents)
-	unicodeContent = unicode(content)
-	pattern = re.compile("\"id\"\:(\d*)\,\"title\"\:\"(.*?)\"\,\"description\"\:\"(.*?)\"")
-	matches = re.findall(pattern, unicodeContent)
-	for matchObj in matches:
+        cards = soup.find_all("div", "row card-row")[0].contents[0].contents
+	for card in cards:
+		link =  card.find_all("a", id="productCardThumbnail")[0]['href']
+		title = card.find_all("h4", id="productCardTitle")[0].string
+		price = card.find_all("span", id="productCardPrice")[0]['title']
 		listing = Carousell();
-		listing.id = int(matchObj[0])
-		listing.title = unicode(matchObj[1])
-		listing.desc = unicode(matchObj[2])
+		listing.id = int(getProductId(link))
+		listing.title = unicode(title)
+		listing.link = unicode(carousellBaseLink + link)
+		listing.price = unicode(price)
 		newListings.append(listing)
 
 # set working directory to current path
@@ -109,7 +123,6 @@ for searchTerm in searchTerms:
 
 	newListingsAdded = list(set(newListings) - set(oldListings))
 
-	'''
 	print "New listings in website: "
 	for listing in newListings:
 		print listing.title
@@ -119,12 +132,11 @@ for searchTerm in searchTerms:
 	for listing in oldListings:
 		print listing.title
 	print " "
-	'''
 
 	#print "New listings to be added to storage: "
 	for listing in newListingsAdded: 
 		#print listing.title
-		 push = pb.push_note("A new listing has been found for " + searchTerm.rstrip(), listing.title)
+		 push = pb.push_note("A new listing has been found for " + searchTerm.rstrip(), listing.title + "\n" + listing.price + "\n" + listing.link)
 	#print " "
 
 	print ("There were " + str(len(newListings)) + " listings found on the website with " + str(len(newListingsAdded)) + " listings newly added")
