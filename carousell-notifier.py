@@ -5,7 +5,8 @@ from bs4 import BeautifulSoup
 from pushbullet import Pushbullet, InvalidKeyError
 import urllib
 import cfscrape
-import pickle
+import json
+import cPickle as pickle
 import sys
 import re
 import os
@@ -19,11 +20,12 @@ searchTerms = [] # note: search term should not have spaces, replace with +
 # global vars - do not change!
 pushbulletAPI = ""
 newListings = []
+newListingsDictList = []
 
 # carousell object
 class Carousell(object):
 	def __init__(self):
-		self.id = 0		# (integer) id for carousell object
+		self.id = ""		# (integer) id for carousell object
 		self.title = ""		# (string) title for listing
 		self.link = ""
 		self.price = ""
@@ -48,7 +50,7 @@ def getProductId(href):
 		return matches[0]
 	else:
 		print "unable to read id from href: " + href
-		return -1
+		return "-1"
 
 # process carousell URL
 def processURL(link):
@@ -65,11 +67,17 @@ def processURL(link):
 		title = card.find_all("h4", id="productCardTitle")[0].string
 		price = card.find_all("span", id="productCardPrice")[0]['title']
 		listing = Carousell();
-		listing.id = int(getProductId(link))
-		listing.title = unicode(title)
-		listing.link = unicode(carousellBaseLink + link)
-		listing.price = unicode(price)
+		listing.id = getProductId(link)
+		listing.title = title
+		listing.link = carousellBaseLink + link
+		listing.price = price
 		newListings.append(listing)
+		#listDict = {}
+		#listDict['id'] = int(getProductId(link));
+		#listDict['title'] = title
+		#listDict['link'] = carousellBaseLink + link
+		#listDict['price'] = price
+		#newListings.append(listDict);
 
 # set working directory to current path
 abspath = os.path.abspath(__file__)
@@ -107,6 +115,7 @@ for searchTerm in searchTerms:
 
 	# compare new listings with old
 	oldListings = []
+	oldListingsJSON = []
 	oldFileExists = True
 
 	oldFileName = "oldListings" + searchTerm.rstrip() + ".pkl"
@@ -115,14 +124,25 @@ for searchTerm in searchTerms:
 		with open(oldFileName, 'rb') as input:
 			while True:
 				try:
-					oldListing = pickle.load(input)
+					oldListings = pickle.load(input)
 					# print oldListing.title
-					oldListings.append(oldListing)
+					#oldListings.append(oldListing)
 				except (EOFError):
 					break
 	except IOError:
 		print "File not found. Continuing anyways...\n"
 		oldFileExists = False
+
+	# convert JSON to objects
+	'''
+	for listing in oldListingsJSON:
+		listingObj = Carousell()
+		listingObj.id = listing.id
+		listingObj.price = listing.price
+		listingObj.link = lisitng.link
+		listingObj.title = listing.title
+		oldListings.append(listingObj)
+		'''
 
 	newListingsAdded = list(set(newListings) - set(oldListings))
 
@@ -146,7 +166,6 @@ for searchTerm in searchTerms:
 	print " "
 
 	# append new listings to old listings storage
-	for listing in newListingsAdded:
-		with open(oldFileName, 'ab') as output:
-		# 	print ("Adding listings: " + str(listing.id))
-			pickle.dump(listing, output, -1)
+	with open(oldFileName, 'ab') as output:
+	# 	print ("Adding listings: " + str(listing.id))
+		pickle.dump(newListingsAdded, output, protocol=-1)
