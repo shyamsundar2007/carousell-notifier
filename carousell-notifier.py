@@ -5,7 +5,6 @@ from bs4 import BeautifulSoup
 from pushbullet import Pushbullet, InvalidKeyError
 import urllib
 import cfscrape
-import json
 import cPickle as pickle
 import sys
 import re
@@ -72,12 +71,6 @@ def processURL(link):
 		listing.link = carousellBaseLink + link
 		listing.price = price
 		newListings.append(listing)
-		#listDict = {}
-		#listDict['id'] = int(getProductId(link));
-		#listDict['title'] = title
-		#listDict['link'] = carousellBaseLink + link
-		#listDict['price'] = price
-		#newListings.append(listDict);
 
 # set working directory to current path
 abspath = os.path.abspath(__file__)
@@ -125,24 +118,11 @@ for searchTerm in searchTerms:
 			while True:
 				try:
 					oldListings = pickle.load(input)
-					# print oldListing.title
-					#oldListings.append(oldListing)
 				except (EOFError):
 					break
 	except IOError:
 		print "File not found. Continuing anyways...\n"
 		oldFileExists = False
-
-	# convert JSON to objects
-	'''
-	for listing in oldListingsJSON:
-		listingObj = Carousell()
-		listingObj.id = listing.id
-		listingObj.price = listing.price
-		listingObj.link = lisitng.link
-		listingObj.title = listing.title
-		oldListings.append(listingObj)
-		'''
 
 	newListingsAdded = list(set(newListings) - set(oldListings))
 
@@ -167,5 +147,4 @@ for searchTerm in searchTerms:
 
 	# append new listings to old listings storage
 	with open(oldFileName, 'ab') as output:
-	# 	print ("Adding listings: " + str(listing.id))
 		pickle.dump(newListingsAdded, output, protocol=-1)
