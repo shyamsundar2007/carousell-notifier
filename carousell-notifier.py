@@ -2,7 +2,7 @@
 
 # imports
 from bs4 import BeautifulSoup
-from pushbullet import Pushbullet, InvalidKeyError
+from pushbullet import Pushbullet, InvalidKeyError, PushbulletError
 import urllib
 import cfscrape
 import cPickle as pickle
@@ -138,7 +138,10 @@ for searchTerm in searchTerms:
 
 	if oldFileExists:
 		for listing in newListingsAdded: 
-			 push = pb.push_note("A new listing has been found for " + searchTerm.rstrip(), listing.title + "\n" + listing.price + "\n" + listing.link)
+			try:
+				push = pb.push_note("A new listing has been found for " + searchTerm.rstrip(), listing.title + "\n" + listing.price + "\n" + listing.link)
+			except PushbulletError:
+				print "Pushbullet push error for " + listing.title
 	else:
 		print "Since old file does not exist, not spamming pushbullet with multiple listings. New listings will be pushed to your device!"
 
